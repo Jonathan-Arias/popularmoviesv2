@@ -8,13 +8,19 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerview_movies"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false" />
+        android:layout_height="match_parent" />
     
     <TextView
-        android:id="@+id/tv_error"
+        android:id="@+id/tv_error_msg"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:visibility="invisible"/>
+
+    <ProgressBar
+        android:id="@+id/pb_loading_icon"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
         android:layout_gravity="center"
         android:visibility="invisible"/>
 
