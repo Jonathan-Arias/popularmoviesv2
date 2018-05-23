@@ -1,7 +1,6 @@
 <resources>
     <string name="app_name">Popular MoviesV2</string>
-    <string name="base_popular_url" translatable="false">http://api.themoviedb.org/3/movie/popular?api_key=</string>
-    <string name="base_toprated_url" translatable="false">http://api.themoviedb.org/3/movie/top_rated?api_key=</string>
-    <string name="base_image_url" translatable="false">"http://image.tmdb.org/t/p/w342</string>
+    <string name="popular_sort" translatable="false">popular</string>
+    <string name="top_rated_sort" translatable="false">top_rated</string>
     <string name="error">Unable to load movie data. Try later!</string>
 </resources>

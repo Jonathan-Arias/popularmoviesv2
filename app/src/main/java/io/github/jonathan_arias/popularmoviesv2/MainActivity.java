@@ -13,86 +13,37 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
+import java.net.URL;
 import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Movie>>{
-    private String API_KEY;
-    private String BASE_POPULAR_URL;
-    private String BASE_TOPRATED_URL;
 
     private RecyclerView recyclerView;
     private TextView tvErrorMessage;
     private ProgressBar pbLoadingIcon;
-    private final int NUMBEROFCOLUMNS = 2;
-
     private MovieAdapter movieAdapter;
+    private final int NUMBEROFCOLUMNS = 2;
+    private static final int MOVIE_LOADER_ID = 21;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        API_KEY = getResources().getString(R.string.API_KEY);
-        BASE_POPULAR_URL = getResources().getString(R.string.base_popular_url);
-        BASE_TOPRATED_URL = getResources().getString(R.string.base_toprated_url);
-
-        String url = BASE_POPULAR_URL + API_KEY;
-
         recyclerView = (RecyclerView) findViewById(R.id.recyclerview_movies);
         tvErrorMessage = (TextView) findViewById(R.id.tv_error_msg);
         pbLoadingIcon = (ProgressBar) findViewById(R.id.pb_loading_icon);
 
         recyclerView.setLayoutManager(new GridLayoutManager(this, NUMBEROFCOLUMNS));
+        movieAdapter = new MovieAdapter();
+        movieAdapter.setContext(this);
+        recyclerView.setAdapter(movieAdapter);
 
-        RequestQueue queue = Volley.newRequestQueue(this);
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        ArrayList<Movie> movies = new ArrayList<>();
-                        try {
-                            JSONObject jsonObject = new JSONObject(response);
-                            JSONArray jsonArray = jsonObject.getJSONArray("results");
-                            for (int i = 0; i < jsonArray.length(); i++){
-                                JSONObject t = jsonArray.getJSONObject(i);
-                                String title = t.getString("title");
-                                double voteAverage = t.getDouble("vote_average");
-                                String overview = t.getString("overview");
-                                String releaseDate = t.getString("release_date");
-                                String posterPath = t.getString("poster_path");
-                                String backdropPath = t.getString("backdrop_path");
-                                movies.add(new Movie(title, voteAverage, overview, releaseDate,
-                                        posterPath, backdropPath));
-                            }
-
-                            movieAdapter = new MovieAdapter(getApplicationContext(), movies);
-                            recyclerView.setAdapter(movieAdapter);
-                        } catch (JSONException ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                tvErrorMessage.setVisibility(View.VISIBLE);
-            }
-        });
-
-        queue.add(stringRequest);
-
+        LoaderManager.LoaderCallbacks<List<Movie>> callbacks = MainActivity.this;
+        Bundle bundle = null;
+        getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, bundle, callbacks);
     }
 
     @NonNull
@@ -114,14 +65,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Nullable
             @Override
             public List<Movie> loadInBackground() {
-                String url = BASE_POPULAR_URL + API_KEY;
+                String preferredSortOrder = "popular";
+                URL url = NetworkUtils.buildUrl(getBaseContext(), preferredSortOrder);
                 try {
                     String jsonResponse = NetworkUtils.getResponseFromHttpUrl(url);
+                    List<Movie> movieData = NetworkUtils.getMovieDataFromJson(jsonResponse);
+                    return movieData;
                 } catch (Exception ex) {
                     ex.printStackTrace();
+                    return null;
                 }
-
-                return movies;
             }
 
             @Override
@@ -135,8 +88,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onLoadFinished(@NonNull Loader<List<Movie>> loader, List<Movie> data) {
         pbLoadingIcon.setVisibility(View.INVISIBLE);
-        movieAdapter = new MovieAdapter(getApplicationContext(), data);
-        recyclerView.setAdapter(movieAdapter);
+        movieAdapter.setMovieData(data);
         if (null == data){
             recyclerView.setVisibility(View.INVISIBLE);
             tvErrorMessage.setVisibility(View.VISIBLE);
