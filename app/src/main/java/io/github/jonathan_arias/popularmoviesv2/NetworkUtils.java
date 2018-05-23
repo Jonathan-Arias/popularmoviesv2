@@ -18,6 +18,7 @@ import java.util.Scanner;
 
 public final class NetworkUtils {
     private static final String BASE_MOVIEDB_URL = "http://api.themoviedb.org/3/movie/";
+    public static final String BASE_IMAGE_URL = "http://image.tmdb.org/t/p/w342";
 
     public static URL buildUrl(Context context, String preferredSortOrder){
         StringBuilder builder = new StringBuilder()

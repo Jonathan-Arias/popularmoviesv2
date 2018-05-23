@@ -1,8 +1,11 @@
 package io.github.jonathan_arias.popularmoviesv2;
 
-public class Movie {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Movie implements Parcelable {
     private String title;
-    private double voteAverage;
+    private String voteAverage;
     private String overview;
     private String releaseDate;
     private String posterPath;
@@ -13,12 +16,33 @@ public class Movie {
     public Movie(String title, double voteAverage, String overview, String releaseDate,
                  String posterPath, String backdropPath){
         this.title = title;
-        this.voteAverage = voteAverage;
+        this.voteAverage = String.valueOf(voteAverage);
         this.overview = overview;
         this.releaseDate = releaseDate;
         this.posterPath = posterPath;
         this.backdropPath = backdropPath;
     }
+
+    protected Movie(Parcel in) {
+        title = in.readString();
+        voteAverage = in.readString();
+        overview = in.readString();
+        releaseDate = in.readString();
+        posterPath = in.readString();
+        backdropPath = in.readString();
+    }
+
+    public static final Creator<Movie> CREATOR = new Creator<Movie>() {
+        @Override
+        public Movie createFromParcel(Parcel in) {
+            return new Movie(in);
+        }
+
+        @Override
+        public Movie[] newArray(int size) {
+            return new Movie[size];
+        }
+    };
 
     public String getTitle() {
         return title;
@@ -28,12 +52,12 @@ public class Movie {
         this.title = title;
     }
 
-    public double getVoteAverage() {
+    public String getVoteAverage() {
         return voteAverage;
     }
 
     public void setVoteAverage(double voteAverage) {
-        this.voteAverage = voteAverage;
+        this.voteAverage = String.valueOf(voteAverage);
     }
 
     public String getOverview() {
@@ -66,5 +90,20 @@ public class Movie {
 
     public void setBackdropPath(String backdropPath) {
         this.backdropPath = backdropPath;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(title);
+        dest.writeString(voteAverage);
+        dest.writeString(overview);
+        dest.writeString(releaseDate);
+        dest.writeString(posterPath);
+        dest.writeString(backdropPath);
     }
 }

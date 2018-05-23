@@ -7,29 +7,42 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 import java.util.List;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> {
-    private static final String BASE_IMAGE_URL = "http://image.tmdb.org/t/p/w342";
     private List<Movie> movies;
     private Context context;
+
+    final private MovieAdapterOnClickHandler handler;
+
+    public interface MovieAdapterOnClickHandler {
+        void onClick(Movie selectedMovie);
+    }
+
+    public MovieAdapter(MovieAdapterOnClickHandler handler){
+        this.handler = handler;
+    }
 
     public void setContext(Context context){
         this.context = context;
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        ImageView imageView;
+        public final ImageView imageView;
         ViewHolder(View view){
             super(view);
             imageView = (ImageView) view.findViewById(R.id.imageview_movie);
+            view.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View view) {
-            return;
+            int adapterPosition = getAdapterPosition();
+            Movie selectedMovie = movies.get(adapterPosition);
+            handler.onClick(selectedMovie);
         }
     }
 
@@ -52,7 +65,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Movie movie = movies.get(position);
-        String posterUrl = BASE_IMAGE_URL + movie.getPosterPath();
+        String posterUrl = NetworkUtils.BASE_IMAGE_URL + movie.getPosterPath();
         Picasso.with(context).load(posterUrl).into(holder.imageView);
     }
 

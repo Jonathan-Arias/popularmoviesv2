@@ -1,5 +1,6 @@
 package io.github.jonathan_arias.popularmoviesv2;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
@@ -12,12 +13,15 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.net.URL;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Movie>>{
+public class MainActivity extends AppCompatActivity
+        implements LoaderManager.LoaderCallbacks<List<Movie>>,
+        MovieAdapter.MovieAdapterOnClickHandler {
 
     private RecyclerView recyclerView;
     private TextView tvErrorMessage;
@@ -37,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         pbLoadingIcon = (ProgressBar) findViewById(R.id.pb_loading_icon);
 
         recyclerView.setLayoutManager(new GridLayoutManager(this, NUMBEROFCOLUMNS));
-        movieAdapter = new MovieAdapter();
+        movieAdapter = new MovieAdapter(this);
         movieAdapter.setContext(this);
         recyclerView.setAdapter(movieAdapter);
 
@@ -101,5 +105,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onLoaderReset(@NonNull Loader<List<Movie>> loader) {
 
+    }
+
+    @Override
+    public void onClick(Movie selectedMovie){
+        Intent intent = new Intent(this, DetailActivity.class);
+        intent.putExtra(Intent.EXTRA_TEXT, selectedMovie);
+        startActivity(intent);
     }
 }

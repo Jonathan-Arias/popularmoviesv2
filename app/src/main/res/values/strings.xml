@@ -2,5 +2,5 @@
     <string name="app_name">Popular MoviesV2</string>
     <string name="popular_sort" translatable="false">popular</string>
     <string name="top_rated_sort" translatable="false">top_rated</string>
-    <string name="error">Unable to load movie data. Try later!</string>
+    <string name="error">Unable to load movie data.\nTry again later!</string>
 </resources>
