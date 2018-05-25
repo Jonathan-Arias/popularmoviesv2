@@ -1,6 +1,7 @@
 package io.github.jonathan_arias.popularmoviesv2;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
@@ -8,12 +9,15 @@ import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.net.URL;
 import java.util.List;
@@ -21,7 +25,8 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks<List<Movie>>,
-        MovieAdapter.MovieAdapterOnClickHandler {
+        MovieAdapter.MovieAdapterOnClickHandler,
+        SharedPreferences.OnSharedPreferenceChangeListener {
 
     private RecyclerView recyclerView;
     private TextView tvErrorMessage;
@@ -29,6 +34,7 @@ public class MainActivity extends AppCompatActivity
     private MovieAdapter movieAdapter;
     private final int NUMBEROFCOLUMNS = 2;
     private static final int MOVIE_LOADER_ID = 21;
+    private static boolean PREFERENCES_UPDATED = false;
 
 
     @Override
@@ -48,6 +54,8 @@ public class MainActivity extends AppCompatActivity
         LoaderManager.LoaderCallbacks<List<Movie>> callbacks = MainActivity.this;
         Bundle bundle = null;
         getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, bundle, callbacks);
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .registerOnSharedPreferenceChangeListener(this);
     }
 
     @NonNull
@@ -69,7 +77,7 @@ public class MainActivity extends AppCompatActivity
             @Nullable
             @Override
             public List<Movie> loadInBackground() {
-                String preferredSortOrder = "popular";
+                String preferredSortOrder = SettingsFragment.getPreferredSortOrder(getBaseContext());
                 URL url = NetworkUtils.buildUrl(getBaseContext(), preferredSortOrder);
                 try {
                     String jsonResponse = NetworkUtils.getResponseFromHttpUrl(url);
@@ -112,5 +120,65 @@ public class MainActivity extends AppCompatActivity
         Intent intent = new Intent(this, DetailActivity.class);
         intent.putExtra(Intent.EXTRA_TEXT, selectedMovie);
         startActivity(intent);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.settings, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_settings){
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        checkPreferences();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        checkPreferences();
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+
+        checkPreferences();
+    }
+
+    private void checkPreferences(){
+        if (PREFERENCES_UPDATED){
+            getSupportLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
+            PREFERENCES_UPDATED = false;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        PreferenceManager.getDefaultSharedPreferences(this)
+                .unregisterOnSharedPreferenceChangeListener(this);
+    }
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+        PREFERENCES_UPDATED = true;
     }
 }
