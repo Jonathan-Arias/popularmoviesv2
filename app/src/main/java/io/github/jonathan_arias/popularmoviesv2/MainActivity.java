@@ -1,21 +1,27 @@
 package io.github.jonathan_arias.popularmoviesv2;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.transition.Fade;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -36,6 +42,9 @@ public class MainActivity extends AppCompatActivity
     private static final int MOVIE_LOADER_ID = 21;
     private static boolean PREFERENCES_UPDATED = false;
 
+    public static final String EXTRA_MOVIE = "EXTRA_MOVIE";
+    public static final String EXTRA_TRANSITION_NAME = "EXTRA_TRANSITION_NAME";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +57,6 @@ public class MainActivity extends AppCompatActivity
 
         recyclerView.setLayoutManager(new GridLayoutManager(this, NUMBEROFCOLUMNS));
         movieAdapter = new MovieAdapter(this);
-        movieAdapter.setContext(this);
         recyclerView.setAdapter(movieAdapter);
 
         LoaderManager.LoaderCallbacks<List<Movie>> callbacks = MainActivity.this;
@@ -58,6 +66,7 @@ public class MainActivity extends AppCompatActivity
                 .registerOnSharedPreferenceChangeListener(this);
     }
 
+    @SuppressLint("StaticFieldLeak")
     @NonNull
     @Override
     public Loader<List<Movie>> onCreateLoader(int id, @Nullable Bundle args) {
@@ -116,10 +125,15 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onClick(Movie selectedMovie){
+    public void onClick(Movie selectedMovie, ImageView sharedView){
         Intent intent = new Intent(this, DetailActivity.class);
-        intent.putExtra(Intent.EXTRA_TEXT, selectedMovie);
-        startActivity(intent);
+        intent.putExtra(EXTRA_MOVIE, selectedMovie);
+        intent.putExtra(EXTRA_TRANSITION_NAME, ViewCompat.getTransitionName(sharedView));
+        ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                this,
+                sharedView,
+                ViewCompat.getTransitionName(sharedView));
+        startActivity(intent, options.toBundle());
     }
 
     @Override

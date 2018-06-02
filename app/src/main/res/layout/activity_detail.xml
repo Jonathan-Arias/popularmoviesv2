@@ -5,14 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-    
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+
+<LinearLayout
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="8dp"
+    android:layout_height="wrap_content"
+    android:padding="0dp"
     tools:context=".DetailActivity">
     
     <ImageView
@@ -25,18 +24,21 @@
         android:id="@+id/release_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:padding="4dp"
         tools:text="Released: "/>
     
     <TextView
         android:id="@+id/vote_average"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:padding="4dp"
         tools:text="Average Rating: "/>
     
     <TextView
         android:id="@+id/overview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:padding="4dp"
         tools:text="Synopsis: " />
 
 </LinearLayout>
