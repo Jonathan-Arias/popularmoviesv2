@@ -50,7 +50,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> 
     public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
         final Movie movie = movies.get(position);
         String posterUrl = NetworkUtils.BASE_IMAGE_URL + movie.getPosterPath();
-        Picasso.with(holder.imageView.getContext()).load(posterUrl).into(holder.imageView);
+        Picasso.with(holder.imageView.getContext())
+                .load(posterUrl)
+                .noFade()
+                .into(holder.imageView);
         ViewCompat.setTransitionName(holder.imageView, movie.getTitle());
 
         holder.imageView.setOnClickListener(new View.OnClickListener() {

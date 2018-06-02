@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.transition.Fade;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -50,6 +51,14 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Fade fade = new Fade();
+        fade.excludeTarget(getSupportActionBar().getClass(), true);
+        fade.excludeTarget(android.R.id.navigationBarBackground, true);
+        fade.excludeTarget(android.R.id.statusBarBackground, true);
+
+        getWindow().setEnterTransition(fade);
+        getWindow().setExitTransition(fade);
 
         recyclerView = (RecyclerView) findViewById(R.id.recyclerview_movies);
         tvErrorMessage = (TextView) findViewById(R.id.tv_error_msg);

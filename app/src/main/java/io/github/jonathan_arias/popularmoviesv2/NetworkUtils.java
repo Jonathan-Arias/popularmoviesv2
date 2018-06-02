@@ -2,6 +2,7 @@ package io.github.jonathan_arias.popularmoviesv2;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,6 +20,7 @@ import java.util.Scanner;
 public final class NetworkUtils {
     private static final String BASE_MOVIEDB_URL = "http://api.themoviedb.org/3/movie/";
     public static final String BASE_IMAGE_URL = "http://image.tmdb.org/t/p/w342";
+    public static final String BASE_YOUTUBE_URL = "https://www.youtube.com/watch?v=";
 
     public static URL buildUrl(Context context, String preferredSortOrder){
         StringBuilder builder = new StringBuilder()
@@ -34,7 +36,6 @@ public final class NetworkUtils {
         return url;
     }
 
-    // Method reused from Sunshine project, S06.03
     public static String getResponseFromHttpUrl(URL url) throws IOException {
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
         try {
@@ -78,7 +79,8 @@ public final class NetworkUtils {
             String release_date = tmp.getString(RELEASE_DATE);
             String poster_path = tmp.getString(POSTER_PATH);
             String backdrop_path = tmp.getString(BACKDROP_PATH);
-            movies.add(new Movie(title, vote_avg, overview, release_date, poster_path, backdrop_path));
+            int movie_id = tmp.getInt("id");
+            movies.add(new Movie(title, vote_avg, overview, release_date, poster_path, backdrop_path, movie_id));
         }
 
         return movies;
