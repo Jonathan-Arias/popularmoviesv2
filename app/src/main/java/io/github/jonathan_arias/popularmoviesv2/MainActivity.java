@@ -1,6 +1,7 @@
 package io.github.jonathan_arias.popularmoviesv2;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
@@ -23,13 +24,21 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import java.net.URL;
-import java.util.List;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity
-        implements LoaderManager.LoaderCallbacks<List<Movie>>,
-        MovieAdapter.MovieAdapterOnClickHandler,
+    implements MovieAdapter.MovieAdapterOnClickHandler,
         SharedPreferences.OnSharedPreferenceChangeListener {
 
     private RecyclerView rvMovies;
@@ -60,61 +69,75 @@ public class MainActivity extends AppCompatActivity
         movieAdapter = new MovieAdapter(this);
         rvMovies.setAdapter(movieAdapter);
 
-        LoaderManager.LoaderCallbacks<List<Movie>> callbacks = MainActivity.this;
-        getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, callbacks);
+        VolleySingleton.getInstance(this.getApplicationContext());
+
+        String url = buildListUrl(this);
+
+        StringRequest stringRequest = buildListStringRequest(url);
+
+        VolleySingleton.getInstance(this).addToRequestQueue(stringRequest);
+        
         PreferenceManager.getDefaultSharedPreferences(this)
                 .registerOnSharedPreferenceChangeListener(this);
     }
 
-    @SuppressLint("StaticFieldLeak")
-    @NonNull
-    @Override
-    public Loader<List<Movie>> onCreateLoader(int id, @Nullable Bundle args) {
-        return new AsyncTaskLoader<List<Movie>>(this) {
-            List<Movie> movies = null;
-
-            @Override
-            protected void onStartLoading() {
-                if (movies != null){
-                    deliverResult(movies);
-                } else {
-                    pbLoadingIcon.setVisibility(View.VISIBLE);
-                    forceLoad();
-                }
-            }
-
-            @Nullable
-            @Override
-            public List<Movie> loadInBackground() {
-                String preferredSortOrder = SettingsFragment.getPreferredSortOrder(getBaseContext());
-                URL url = NetworkUtils.buildUrl(getBaseContext(), preferredSortOrder);
-                try {
-                    String jsonResponse = NetworkUtils.getResponseFromHttpUrl(url);
-                    List<Movie> movieData = NetworkUtils.getMovieDataFromJson(jsonResponse);
-                    return movieData;
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    return null;
-                }
-            }
-
-            @Override
-            public void deliverResult(@Nullable List<Movie> data) {
-                movies = data;
-                super.deliverResult(data);
-            }
-        };
+    private static String buildListUrl(Context context){
+        return new StringBuilder()
+                .append(NetworkUtils.BASE_MOVIEDB_URL)
+                .append(SettingsFragment.getPreferredSortOrder(context))
+                .append("?")
+                .append("api_key=")
+                .append(context.getResources().getString(R.string.API_KEY))
+                .toString();
     }
 
-    @Override
-    public void onLoadFinished(@NonNull Loader<List<Movie>> loader, List<Movie> data) {
-        pbLoadingIcon.setVisibility(View.INVISIBLE);
-        movieAdapter.setMovieData(data);
-        if (null == data){
-            showLoadUnsuccessful();
-        } else {
-            showLoadSuccessful();
-        }
+    private StringRequest buildListStringRequest(String url){
+        return new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String movieJsonResponse) {
+                        pbLoadingIcon.setVisibility(View.INVISIBLE);
+                        if (movieJsonResponse == null){
+                            showLoadUnsuccessful();
+                            return;
+                        }
+                        final String RESULTS = "results";
+                        final String TITLE = "title";
+                        final String VOTE_AVG = "vote_average";
+                        final String OVERVIEW = "overview";
+                        final String RELEASE_DATE = "release_date";
+                        final String POSTER_PATH = "poster_path";
+                        final String BACKDROP_PATH = "backdrop_path";
+                        final String ID = "id";
+
+                        ArrayList<Movie> movies = new ArrayList<>();
+                        try {
+                            JSONObject movieJson = new JSONObject(movieJsonResponse);
+                            JSONArray jsonArray = movieJson.getJSONArray(RESULTS);
+
+                            for (int i = 0; i < jsonArray.length(); i++){
+                                JSONObject tmp = jsonArray.getJSONObject(i);
+                                String title = tmp.getString(TITLE);
+                                Double vote_avg = tmp.getDouble(VOTE_AVG);
+                                String overview = tmp.getString(OVERVIEW);
+                                String release_date = tmp.getString(RELEASE_DATE);
+                                String poster_path = tmp.getString(POSTER_PATH);
+                                String backdrop_path = tmp.getString(BACKDROP_PATH);
+                                int movie_id = tmp.getInt(ID);
+                                movies.add(new Movie(title, vote_avg, overview, release_date, poster_path, backdrop_path, movie_id));
+                            }
+                        } catch (JSONException ex){
+                            ex.printStackTrace();
+                        }
+                        movieAdapter.setMovieData(movies);
+                        showLoadSuccessful();
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                showLoadUnsuccessful();
+            }
+        });
     }
 
     private void showLoadSuccessful(){
@@ -125,11 +148,6 @@ public class MainActivity extends AppCompatActivity
     private void showLoadUnsuccessful(){
         rvMovies.setVisibility(View.INVISIBLE);
         tvErrorMsg.setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    public void onLoaderReset(@NonNull Loader<List<Movie>> loader) {
-
     }
 
     @Override
@@ -187,7 +205,10 @@ public class MainActivity extends AppCompatActivity
 
     private void checkPreferences(){
         if (PREFERENCES_UPDATED){
-            getSupportLoaderManager().restartLoader(MOVIE_LOADER_ID, null, this);
+            pbLoadingIcon.setVisibility(View.VISIBLE);
+            rvMovies.setVisibility(View.INVISIBLE);
+            String updated = buildListUrl(this);
+            VolleySingleton.getInstance(this).addToRequestQueue(buildListStringRequest(updated));
             PREFERENCES_UPDATED = false;
         }
     }
