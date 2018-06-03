@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -16,8 +15,6 @@ import android.os.Bundle;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
-import android.transition.Fade;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -35,16 +32,16 @@ public class MainActivity extends AppCompatActivity
         MovieAdapter.MovieAdapterOnClickHandler,
         SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private RecyclerView recyclerView;
-    private TextView tvErrorMessage;
+    private RecyclerView rvMovies;
+    private TextView tvErrorMsg;
     private ProgressBar pbLoadingIcon;
     private MovieAdapter movieAdapter;
-    private final int NUMBEROFCOLUMNS = 2;
+    private final int NUM_COLUMNS = 2;
     private static final int MOVIE_LOADER_ID = 21;
     private static boolean PREFERENCES_UPDATED = false;
 
-    public static final String EXTRA_MOVIE = "EXTRA_MOVIE";
-    public static final String EXTRA_TRANSITION_NAME = "EXTRA_TRANSITION_NAME";
+    public static final String EXTRA_MOVIE = "extra_movie";
+    public static final String EXTRA_TRANSITION_NAME = "extra_transition_name";
 
 
     @Override
@@ -52,25 +49,19 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Fade fade = new Fade();
-        fade.excludeTarget(getSupportActionBar().getClass(), true);
-        fade.excludeTarget(android.R.id.navigationBarBackground, true);
-        fade.excludeTarget(android.R.id.statusBarBackground, true);
+        // This prevents the action bar from flashing during animation
+        getWindow().setExitTransition(null);
 
-        getWindow().setEnterTransition(fade);
-        getWindow().setExitTransition(fade);
+        rvMovies = findViewById(R.id.recyclerview_movies);
+        tvErrorMsg = findViewById(R.id.tv_error_msg);
+        pbLoadingIcon = findViewById(R.id.pb_loading_icon);
 
-        recyclerView = (RecyclerView) findViewById(R.id.recyclerview_movies);
-        tvErrorMessage = (TextView) findViewById(R.id.tv_error_msg);
-        pbLoadingIcon = (ProgressBar) findViewById(R.id.pb_loading_icon);
-
-        recyclerView.setLayoutManager(new GridLayoutManager(this, NUMBEROFCOLUMNS));
+        rvMovies.setLayoutManager(new GridLayoutManager(this, NUM_COLUMNS));
         movieAdapter = new MovieAdapter(this);
-        recyclerView.setAdapter(movieAdapter);
+        rvMovies.setAdapter(movieAdapter);
 
         LoaderManager.LoaderCallbacks<List<Movie>> callbacks = MainActivity.this;
-        Bundle bundle = null;
-        getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, bundle, callbacks);
+        getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, callbacks);
         PreferenceManager.getDefaultSharedPreferences(this)
                 .registerOnSharedPreferenceChangeListener(this);
     }
@@ -120,12 +111,20 @@ public class MainActivity extends AppCompatActivity
         pbLoadingIcon.setVisibility(View.INVISIBLE);
         movieAdapter.setMovieData(data);
         if (null == data){
-            recyclerView.setVisibility(View.INVISIBLE);
-            tvErrorMessage.setVisibility(View.VISIBLE);
+            showLoadUnsuccessful();
         } else {
-            recyclerView.setVisibility(View.VISIBLE);
-            tvErrorMessage.setVisibility(View.INVISIBLE);
+            showLoadSuccessful();
         }
+    }
+
+    private void showLoadSuccessful(){
+        rvMovies.setVisibility(View.VISIBLE);
+        tvErrorMsg.setVisibility(View.INVISIBLE);
+    }
+
+    private void showLoadUnsuccessful(){
+        rvMovies.setVisibility(View.INVISIBLE);
+        tvErrorMsg.setVisibility(View.VISIBLE);
     }
 
     @Override

@@ -1,8 +1,6 @@
 package io.github.jonathan_arias.popularmoviesv2;
 
 import android.content.Context;
-import android.net.Uri;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -66,6 +64,7 @@ public final class NetworkUtils {
         final String RELEASE_DATE = "release_date";
         final String POSTER_PATH = "poster_path";
         final String BACKDROP_PATH = "backdrop_path";
+        final String ID = "id";
 
         ArrayList<Movie> movies = new ArrayList<>();
         JSONObject movieJson = new JSONObject(movieJsonResponse);
@@ -79,7 +78,7 @@ public final class NetworkUtils {
             String release_date = tmp.getString(RELEASE_DATE);
             String poster_path = tmp.getString(POSTER_PATH);
             String backdrop_path = tmp.getString(BACKDROP_PATH);
-            int movie_id = tmp.getInt("id");
+            int movie_id = tmp.getInt(ID);
             movies.add(new Movie(title, vote_avg, overview, release_date, poster_path, backdrop_path, movie_id));
         }
 

@@ -4,6 +4,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.transition.Fade;
 import android.util.Log;
+import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,13 +25,8 @@ public class DetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_detail);
         supportPostponeEnterTransition();
 
-        Fade fade = new Fade();
-        fade.excludeTarget(getSupportActionBar().getClass(), true);
-        fade.excludeTarget(android.R.id.navigationBarBackground, true);
-        fade.excludeTarget(android.R.id.statusBarBackground, true);
-
-        getWindow().setEnterTransition(fade);
-        getWindow().setExitTransition(fade);
+        // This prevents the action bar from flashing during animation
+        getWindow().setEnterTransition(null);
 
         backdropIV = findViewById(R.id.backdrop);
         releaseDateTV = findViewById(R.id.release_date);
@@ -45,11 +41,23 @@ public class DetailActivity extends AppCompatActivity {
         populateUI();
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+
+        if (itemId == android.R.id.home){
+            onBackPressed();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
     private void populateUI(){
         if (movie != null){
-            String releaseDateText = getResources().getString(R.string.populateUI_release) + movie.getReleaseDate();
-            String voteAverageText = getResources().getString(R.string.populateUI_voteAvg) + movie.getVoteAverage();
-            String overviewText = getResources().getString(R.string.populateUI_overview) + movie.getOverview();
+            String releaseDateText = getResources().getString(R.string.populateUI_release) + " " + movie.getReleaseDate();
+            String voteAverageText = getResources().getString(R.string.populateUI_voteAvg) + " " + movie.getVoteAverage();
+            String overviewText = getResources().getString(R.string.populateUI_overview) + " " + movie.getOverview();
 
             getSupportActionBar().setTitle(movie.getTitle());
             releaseDateTV.setText(releaseDateText);
