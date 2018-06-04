@@ -1,15 +1,8 @@
 package io.github.jonathan_arias.popularmoviesv2;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.Loader;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -25,7 +18,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
@@ -71,24 +63,12 @@ public class MainActivity extends AppCompatActivity
 
         VolleySingleton.getInstance(this.getApplicationContext());
 
-        String url = buildListUrl(this);
-
-        StringRequest stringRequest = buildListStringRequest(url);
+        StringRequest stringRequest = buildListStringRequest(NetworkUtils.buildListUrl(this));
 
         VolleySingleton.getInstance(this).addToRequestQueue(stringRequest);
-        
+
         PreferenceManager.getDefaultSharedPreferences(this)
                 .registerOnSharedPreferenceChangeListener(this);
-    }
-
-    private static String buildListUrl(Context context){
-        return new StringBuilder()
-                .append(NetworkUtils.BASE_MOVIEDB_URL)
-                .append(SettingsFragment.getPreferredSortOrder(context))
-                .append("?")
-                .append("api_key=")
-                .append(context.getResources().getString(R.string.API_KEY))
-                .toString();
     }
 
     private StringRequest buildListStringRequest(String url){
@@ -140,12 +120,12 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    private void showLoadSuccessful(){
+    public void showLoadSuccessful(){
         rvMovies.setVisibility(View.VISIBLE);
         tvErrorMsg.setVisibility(View.INVISIBLE);
     }
 
-    private void showLoadUnsuccessful(){
+    public void showLoadUnsuccessful(){
         rvMovies.setVisibility(View.INVISIBLE);
         tvErrorMsg.setVisibility(View.VISIBLE);
     }
@@ -207,7 +187,7 @@ public class MainActivity extends AppCompatActivity
         if (PREFERENCES_UPDATED){
             pbLoadingIcon.setVisibility(View.VISIBLE);
             rvMovies.setVisibility(View.INVISIBLE);
-            String updated = buildListUrl(this);
+            String updated = NetworkUtils.buildListUrl(this);
             VolleySingleton.getInstance(this).addToRequestQueue(buildListStringRequest(updated));
             PREFERENCES_UPDATED = false;
         }
